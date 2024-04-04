@@ -1,5 +1,5 @@
-# NormalizeCLI
-A fast PCM WAV normalizer command-line utility.
+# Normalize Command-Line Utility
+A fast PCM WAV normalizer.
 
 Original website at [https://neon1.net/prog/normalizer.html](https://neon1.net/prog/normalizer.html).
 
