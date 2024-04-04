@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <title>A fast PCM WAV normalizer</title>
+    <style>
+      .para {
+         font-family: Arial, Helvetica, sans-serif;
+         font-size: 13px;
+         font-weight: normal
+      }
+
+      .parab {
+         font-family: Arial, Helvetica, sans-serif;
+         font-size: 13px ;
+         font-weight: bold;
+      }
+
+      .parac {
+         font-family : Arial, Helvetica, sans-serif;
+         font-size : 18px;
+         font-weight : bold;
+      }
+
+      .paras {
+         font-family: Arial, Helvetica, sans-serif;
+         font-size: 11px;
+      }
+
+      .parasb {
+         font-family: Arial, Helvetica, sans-serif;
+         font-size: 11px;
+         font-weight : bold;
+      }
+
+      .hdr {
+         font-family: Arial, Helvetica, sans-serif;
+         font-size: 20px;
+         font-weight: bold;
+      }
+
+      .prefmt {
+         font-family: "Courier New", Courier, mono;
+         font-size: 13px;
+         font-weight: normal;
+      ; color: #000099
+      }
+      .red {
+         color: #CC0000;
+      }
+      .italic {
+         font-style: italic;
+      }
+    </style>
+  </head>
+  <body bgcolor="#FFFFFF" class="para">
+<span class="hdr">A fast PCM WAV normalizer</span> 
+<p class="para">For many tasks involving audio (e.g. compressing WAV files to 
+  MP3), it's nice to have a utility which can normalize audio files. The purpose 
+  of this is to make all audio files sound equally loud. I used to use CoolEdit 
+  (from Syntrillium) to do this task, but since this audio editor is capable of 
+  doing much more than just normalizing waves, it's a bit slow for this task. 
+  Besides, it cannot be easily called from a batch file. </p>
+<p> So I looked for a better alternative, but found none. That was when I decided 
+  to write my own normalizer. It's a small Win32 console mode application called 
+  <i>normalize</i>. It can handle 8-bit and 16-bit PCM WAV files of up to 4 GBs 
+  (larger WAV files are not possible anyway), and it is fast. Hell, faster than 
+  your disk I/O anyway. </p>
+    
+<p> <span class="parab">How it works</span><br>
+  It works like this: if you do not specify an amplification factor (either just 
+  as a factor or in decibels), it will first search the whole file for the negative 
+  and positive peaks. Then it will divide either 32767 or 127 (depending on whether 
+  the file is 16-bit or 8-bit) by the highest amplitude found (negative or positive, 
+  whichever is greater), and the result is the amplification factor. A substitution 
+  table is built in memory that contains the new (amplified) sample value for 
+  each possible input value. Thus the time-consuming task of doing floating-point 
+  multiplication has to be done only once (and at most 65536 multiplications).<br>
+  When these steps have been completed, normalize will pass over the file again, reading 
+  blocks of 64 KB to memory, amplifying them (by substituting sample values from 
+  the table), and writing them back to the file (of course overwriting the original 
+  data).</p>
+<p><span class="parab">Fighting spurious peaks</span><br>
+  Sometimes WAV files have peak samples that occur so rarely or in non-critical 
+  passages that it can be afforded to clip them without introducing audible artifacts. 
+  If these are not clipped, they prevent normalizing the whole file to "normal" 
+  levels (as by default normalize does not clip any sample at all). To help combat 
+  this problem, Lapo Luchini contributed some code which internally produces a 
+  full statistic of the sample values and only considers peak values that have 
+  a given percentile in the statistic. It's called "smartpeak" (-s option); 
+  start with a percentile of 99.99% and decrease if necessary.</p>
+  <p>
+      <span class="parab">Speed</span><br>
+     On an AMD Athlon 1.1 GHz with an IBM 30 GB/7200 RPM/UDMA100 hard
+    disk,  a 1.3 GB WAV file can be normalized in about 3 minutes.
+  </p>
+    <p>
+      <span class="parab">Improving Speed</span><br>
+       About the biggest speed gain can be achieved when using two hard disks
+      instead of one. On one disk you put the source file, and let normalize
+      write the output to a file on the other disk. Thus both disks can be
+      working at the same time (one reading, the other writing), and the
+      effective speed you get will be about the physical write speed of your
+      disk. If you use only one disk, it will have to seek every now and then
+      to read new data, and then again to write the normalized data back.
+    </p>
+    
+<table cellspacing="0" cellpadding="0" border="0" bgcolor="#000000">
+  <tbody><tr>
+        <td>
+          <table cellspacing="1" cellpadding="4" border="0">
+            <tbody><tr>
+              <td bgcolor="#9DB5E6" class="parab">
+                <span class="parab">Download</span> 
+              </td>
+            </tr>
+            <tr>
+              
+          <td bgcolor="#FFFFFF" class="para"> 
+            <p> If you're looking for normalize-0.3x-beta: forget it, it's gone. 
+              I've figured out that the world doesn't need<br>
+              MMX/SSE/SIMD support for peak sample searching because everybody 
+              has got fast processors<br>
+              but very few people have got high-speed SCSI/RAID systems. So... 
+              since I don't have time to merge<br>
+              these two, I decided to get rid of the beta since it doesn't really 
+              make sense. Believe me.</p>
+                
+            <p> <span class="parab">Get <a href="https://neon1.net/prog/normalize0253.zip">normalize-0.253</a></span> (Win32 CLI)<br>
+            (Older versions: <a href="https://neon1.net/prog/normalize025.zip">normalize-0.252</a> <a href="https://neon1.net/prog/normalize023.zip"></a><a href="https://neon1.net/prog/normalize024.zip"></a><a href="https://neon1.net/prog/normalize0241.zip"></a><a href="https://neon1.net/prog/normalize025.zip">normalize-0.25</a> <a href="https://neon1.net/prog/normalize023.zip"></a><a href="https://neon1.net/prog/normalize024.zip"></a><a href="https://neon1.net/prog/normalize0241.zip">normalize-0.241</a> <a href="https://neon1.net/prog/normalize023.zip"></a><a href="https://neon1.net/prog/normalize024.zip">normalize-0.24</a> <a href="https://neon1.net/prog/normalize023.zip">normalize-0.23<br>
+            </a><a href="https://neon1.net/prog/normalize023.zip">normalize-0.23</a> <a href="https://neon1.net/prog/normalize022.zip">normalize-0.22</a> <a href="https://neon1.net/prog/normalize021.zip">normalize-0.21</a>)</p>
+              </td>
+            </tr>
+          </tbody></table>
+        </td>
+  </tr>
+  </tbody></table>
+    <br>
+    <table cellspacing="0" cellpadding="0" border="0" bgcolor="#000000">
+      <tbody><tr>
+        <td>
+          <table cellspacing="1" cellpadding="4" border="0">
+            <tbody><tr>
+              <td bgcolor="#9DB5E6" class="parab">
+                <b>Usage</b> 
+              </td>
+            </tr>
+            <tr>
+              
+          <td bgcolor="#FFFFFF" class="para">
+            <pre class="prefmt">normalize v0.253 (c) 2000-2004 Manuel Kasper &lt;mk@neon1.net&gt;.<br>All rights reserved.<br>smartpeak code by Lapo Luchini &lt;lapo@lapo.it&gt;.<br>Visit http://neon1.net/ for updates.
+
+    Usage:  normalize [flags] input-file
+
+        -l &lt;ratio&gt;   don't find peaks but multiply each sample by &lt;ratio&gt;
+        -a &lt;level&gt;   don't find peaks; amplify by &lt;level&gt; (given in dB)
+        -m &lt;percent&gt; normalize to &lt;percent&gt; (default 100)
+        -s &lt;percent&gt; smartpeak: count as a peak only a signal that has the
+	             given percentile (50%-100%)
+        -x &lt;level&gt;   abort if gain increase is smaller than &lt;level&gt; (in dB)
+        -p           prompt before starting normalization
+        -b &lt;size&gt;    specify I/O buffer size (in KB; 16..16384; default 64)
+        -o &lt;file&gt;    write output to &lt;file&gt; (instead of overwriting original)
+        -q           quiet (no screen output)
+        -d           don't abort batch if user skips normalization of one file
+        -h           display this help
+
+    error levels: 0 = no error, 1 = I/O error, 2 = parameter error,
+                  3 = no amplification required, 4 = out of memory,
+                  5 = user abort
+
+        - wildcards are allowed in 'input-file' (e.g. normalize *.wav)
+        - 'input-file' needs to be a PCM WAV file.</pre> 
+          </td>
+            </tr>
+          </tbody></table>
+        </td>
+      </tr>
+    </tbody></table>
+    <br>
+<table cellspacing="0" cellpadding="0" border="0" bgcolor="#000000">
+  <tbody><tr> 
+    <td> 
+      <table cellspacing="1" cellpadding="4" border="0">
+        <tbody><tr> 
+          <td bgcolor="#9DB5E6" class="parab"> <b>Get the source code</b> </td>
+        </tr>
+        <tr> 
+          <td bgcolor="#FFFFFF" class="para"> 
+            <p>I have finally decided to release the source code to normalize 
+              due to numerous requests.<br>
+              I hereby place it under the <a href="http://www.gnu.org/licenses/gpl.txt" target="_blank">GNU 
+              General Public License</a>.<br>
+              You can download the source code from here:<br>
+              Get <a href="https://neon1.net/prog/normalize-src.zip" class="parab" style="">normalize-0.253 source 
+              code</a></p>
+            <p>Note that there are no comments in the source - I have not written 
+              it with the intent to release it.<br>
+              <span class="parab">I will not answer any questions concerning the 
+              source code, so please don't ask.</span> Thank you.</p>
+          </td>
+        </tr>
+      </tbody></table>
+    </td>
+  </tr>
+</tbody></table>
+<p><span class="parab">But I want a GUI!</span><br>
+  Bruce Heller made a very nice GUI for those of you who don't like fiddling around 
+  with command line arguments. His website was originally found at <a href="https://web.archive.org/web/20050214115515/http://bheller.com/index01.htm" target="_blank">http://www.bheller.com/</a> (now links to Archive.org). 
+  Thanks, Bruce!
+</p>
+<p><span class="parab">From Bruce on the GUI:</span><br>
+This is the second release of the GUI, new stuff are :
+<ul>
+  <li>Addition of the batch processing mode</li>
+  <li>Possibility to translate the GUI easily thanks to a .ini file ;)</li>
+</ul>
+
+If you want to do a translation of the GUI in your language, do not hesitate, it's quite easy, just add a section of the name of the language in the .ini file and translate sentences. :)
+Send me (Bruce) your translations to my email adress.
+If I did a mistake (english is not my native language), please tell me where so I can correct it ;)
+<br><br>
+Please don’t look at the GUI code; it’s not commented or well coded but hey ! It works ! ;)
+</p>
+<p><span class="parab">License</span><br>
+  This program is free software; you can redistribute it and/or modify it under 
+  the terms of the GNU General Public License as published by the Free Software 
+  Foundation; either version 2 of the License, or (at your option) any later version.<br>
+  normalize is © 2000-2004 Manuel Kasper. All rights reserved.</p>
+<p>
+      <span class="parab">Thanks</span><br>
+       Big thanks go to <span class="parab">Georges Wanderstok</span>; he
+      invested much time to do some thorough tests on normalize and sent me
+      many good suggestions. Some of them have already been incorporated in
+      v0.21, others will be integrated in the next versions. Thank you,
+      Georges!<br>
+  Thanks also to <span class="parab">Terje Mathisen</span> for providing me with 
+  some ideas to improve the speed of normalize... Thanks to him normalize now 
+  has MMX and SSE support for the min/max sample scanner.<br>
+  I also want to thank <span class="parab">Lapo Luchini</span> for contributing 
+  the smartpeak search code.</p>
+    <p class="parab">
+      Notes/Bugs/Caveats
+    </p>
+    <ul>
+      <li>
+        while normalize internally uses plain factors for calculation, the
+        values displayed in dB are calculated as follows:<br>
+         [dB] = 20 * log(ratio)<br>
+         (where log is the base-10 logarithm) - thus a factor of 2 is (almost)
+        equal to 6 dB
+      </li>
+      <li>
+        error levels are not always correct (especially if a really fatal error
+        happens); don't rely on them in important applications
+      </li>
+      <li>
+        I should forget about using percents and always use decibels
+      </li>
+      <li>
+        parameter parsing ought to be a bit more intelligent; for example you
+        can't put any parameters after the file name, etc.
+      </li>
+    </ul>
+    
+<p class="parab">Links</p>
+<ul>
+  <li>Adam Brewster is working on a Macintosh port, <a href="http://www.geocities.com/macvauthor/normalize.html" target="_blank">check out his site</a> - he's made a working preliminary version 
+    available for download there...</li>
+</ul>
+<p><span class="parab">Disclaimer</span><font size="-1"><br>
+  </font> <a href="https://neon1.net/prog/disclaimer.html">Read this</a> (if you care) </p>
+    <p class="parab">
+      Version history
+    </p>
+    
+<p><span class="parab">0.253</span> - the absolute value of the amplification factor is now used when comparing with the -x option (thanks to Dave Case for reporting this)</p>
+<p><span class="parab">0.252</span> - the WAV reader now skips  all unknown subchunks</p>
+<p><span class="parab">0.25</span> - incorporated some code contributed by Lapo 
+  Luchini to help fight "spurious peaks"</p>
+<p><span class="parab">0.241</span> - added '-d' flag (don't abort) - see usage 
+  above </p>
+    
+<p><span class="parab">0.24</span> - Jack Vande Bunte suggested to add wildcard 
+  support. Here it is! Now you can call normalize like this: 'normalize *.wav' 
+  and it will normalize all files with a .wav extension in the current directory. 
+</p>
+    
+<p><span class="parab">0.232</span> - I seriously messed up something in the 
+  compile of the v0.231 which went to the website (see the red box above). This 
+  is fixed now. No changes to the code were made in this release. </p>
+    <p>
+      <span class="parab">0.231</span> - normalizing a file consisting only of
+      null samples (digital silence) resulted in the output being all -32768
+      samples (or maybe even a crash). Thanks again to Georges Wanderstok for
+      pointing this out.<br>
+       (Note: this is not fixed yet in 0.3-beta)
+    </p>
+    <p>
+      <span class="parab">0.23</span> - the -o option was defunct for 16-bit
+      WAV files - all it did was to write silence to the output file. Fixed
+      this one now (forgot to move two lines of code while I was changing the
+      parameter parser); thanks to <i>Cyber</i> who brought this to my
+      attention.<span class="parab"><br>
+      <br>
+       0.22</span> - samples are now clipped correctly when "over-normalizing"
+      - instead of producing overflows and very strange results, they're just
+      clipped to the highest/lowest possible sample value (no speed penalty
+      since normalize is table-driven)
+    </p>
+    <p>
+      <span class="parab">0.21 -</span> added new options: -p, -x, -m, -o;
+      changed default buffer size to 64 KB (faster on most systems)
+    </p>
+    <p>
+      <span class="parab">0.1.2</span> - minor cosmetic changes; added a timer
+      which tells you how long it took; added the '-q' switch which disables
+      all screen output (useful in batch scripts) - first version to be
+      released
+    </p>
+    <p>
+      <span class="parab">0.1.1</span> - some small changes to handle the
+      strange 'fact' header that some audio recorders insert (never released)
+    </p>
+    <p>
+      <span class="parab">0.1</span> - made it table-driven: speed is now MUCH
+      better (never released)
+    </p>
+    <p>
+      <span class="parab">0.0.1</span> - first version. It worked. :) (never
+      released)
+    </p>
+    <hr size="1">
+<span class="paras">CLI © 2000-2004 by <font color="#009900">Manuel Kasper</font> 
+&lt;<a href="mailto:mk@neon1.net">mk@neon1.net</a>&gt;. All rights reserved.</span><br>
+<span class="paras">GUI © 2001 by <font color="#009900">Bruce Heller</font> 
+&lt;<a href="mailto:bheller@bheller.com">bheller@bheller.com</a>&gt;. All rights reserved.</span> 
+<br><br>
+<span class="paras">Original website at <a href="https://neon1.net/prog/normalizer.html">https://neon1.net/prog/normalizer.html</a>.<br>
+The source code for both the command-line interface (CLI) and the graphical user interface (GUI)
+are now available on GitHub at <a href="https://github.com/mesheets/Normalize/">GitHub.com/Normalize</a>.</span>
+
+</body></html>
